@@ -3,7 +3,7 @@ This repository provides Python implementation for our "Fair Active Learning" pa
 
 ## Experiments:
 tes_FAL.py trains a classifier given a sampling strategy:
-### FAL_sklearn: our propossed fair active learning approach.
-### FAL_COVXY: our proposed efficient fair active learning by covariance approach. 
-### AL: standard active learning with undertainty sampling.
-### RL: random sampling.
+- FAL_sklearn: our propossed fair active learning approach.
+- FAL_COVXY: our proposed efficient fair active learning by covariance approach. 
+- AL: standard active learning with undertainty sampling.
+- RL: random sampling.

@@ -8,7 +8,7 @@ import lr_inc as lr
 from sklearn.metrics import f1_score
 
 
-def FAL(path,response,sensitive,atr,demo_option,r,b,alpha,rnd,data_option,flag_demo): 
+def FAL(path,response,sensitive,atr,demo_option,r,b,alpha,rnd,data_option,flag_demo,kk): 
     demo_test=[]
     demo_cset=[]
     Time = np.zeros(b)
@@ -20,7 +20,6 @@ def FAL(path,response,sensitive,atr,demo_option,r,b,alpha,rnd,data_option,flag_d
     t1 = time()
     for Iter in range(b):
         u=len(_Xu)
-        E_corr=np.zeros(u)
 #         print("Iteration:", Iter)
         a=alpha[min(10,math.floor(Iter/int(b/11)))]
         score=clf.score(_Xt, _yt)
@@ -30,21 +29,20 @@ def FAL(path,response,sensitive,atr,demo_option,r,b,alpha,rnd,data_option,flag_d
         demo_cset=dm.Demo(_Cset,_Cset_s,_Cset_y,clf=clf,option=demo_option)
         probas_val=clf.predict_proba(_Xu)
         e = (-probas_val * np.log2(probas_val)).sum(axis=1)
-        for j in range(0,u):
+        idx=np.argsort(e)[::-1][0:kk]
+        E_corr=np.zeros(kk)
+        for j in range(0,len(idx)):
             f_tmp=[]
             for k in range(0,2):
-                _Xl_tmp=np.append(_Xl,[_Xu[j]],axis=0)
+                _Xl_tmp=np.append(_Xl,[_Xu[idx[j]]],axis=0)
                 _yl_tmp=np.append(_yl,[k],axis=0)
                 clf_tmp=LogisticRegression(solver='liblinear').fit(_Xl_tmp, _yl_tmp)
                 f_tmp=np.append(f_tmp,dm.Demo(_Cset,_Cset_s,_Cset_y,clf=clf_tmp,option=demo_option))
                 f_tmp[np.isnan(f_tmp)] = 0
-            p = clf.predict_proba(_Xu)[j][0]
+            p = clf.predict_proba(_Xu)[idx[j]][0]
             E_corr[j]=(f_tmp).dot([p,1-p])
-        E_corr_scaled=((E_corr.max()-E_corr)/(E_corr.max()-E_corr.min()))
-        E_corr_scaled[np.isnan(E_corr_scaled)] = 0
-        e_all=((e[0:u]-e[0:u].min())/(e[0:u].max()-e[0:u].min()))
-        e_all=a*e_all+(1-a)*E_corr_scaled
-        selection=np.argsort(e_all)[::-1][0]
+        # find the argmax and add label it
+        selection=idx[np.argsort(E_corr)[::1][0]]
         _Xl=np.append(_Xl,[_Xu[selection]],axis=0)
         _Xl_s=np.append(_Xl_s,[_Xu_s[selection]],axis=0)
         _yl=np.append(_yl,[_yu[selection]],axis=0)
@@ -53,4 +51,4 @@ def FAL(path,response,sensitive,atr,demo_option,r,b,alpha,rnd,data_option,flag_d
         _yu = np.delete(_yu, selection, 0)
         _Xu_s= np.delete(_Xu_s, selection, 0)
         Time[Iter] = time()-t1
-    return demo_test,_Xl,_Xl_s,_yl,clf,overall_score,f1score,Time
+    return demo_test,_Xl,_Xl_s,_yl,clf,overall_score,f1score

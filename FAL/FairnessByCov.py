@@ -1,7 +1,7 @@
-# Hadis Anahideh, Abolfazl Asudeh 2020
 import numpy as np
 import pandas as pd
 
+# IMPORTANT: All the arrays should be of type numpy.array
 Sz = None; Sx=None; Sy=None
 m=0 # number of features (columns)
 n=0 # number of samples (rows)
@@ -23,6 +23,7 @@ def init(X,y,_covXS,_theta):
     covXY = 1./n*np.subtract(Sz,Sx*Ey)
     theta=_theta
     covhS = np.dot(covXS.transpose(),theta)[0,0]
+    #print(covXY)
 
 def updateAggs(newX, newy,newtheta):
     global Sz,Sx,Sy,n,m,covXY,theta,covhS
